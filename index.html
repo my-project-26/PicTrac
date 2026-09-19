@@ -2,18 +2,70 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#000000">
+  
   <title>AR Tracing App</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <!-- 1. Registrierungs / Login Modal -->
+  <div id="auth-modal" class="modal-overlay">
+    <div class="modal-content">
+      <h2>Willkommen bei PicTrac! 🎨</h2>
+      <p>Bitte erstelle ein Profil, um zu starten.</p>
+      
+      <form id="auth-form">
+        <input type="text" id="nickname" placeholder="Dein Nickname" required>
+        <input type="text" id="contact-info" placeholder="E-Mail oder Handynummer" required>
+        <button type="submit" class="btn btn-primary">Starten</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Modal für die Bild-Auswahl (Max 5 Bilder) -->
+  <div id="gallery-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Meine Auswahl (<span id="image-count">0</span>/5)</h3>
+        <button id="close-gallery" class="close-btn">&times;</button>
+      </div>
+      <div id="gallery-grid" class="gallery-grid">
+        <!-- Vorschaubilder werden per JS dynamisch eingefügt -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Modal für Freischaltung / Zahlungsoption -->
+  <div id="unlock-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Pro-Version freischalten 🚀</h3>
+        <button id="close-unlock" class="close-btn">&times;</button>
+      </div>
+      <p>Du hast dein kostenloses Limit von 5 Bildern erreicht!</p>
+      <p class="price-info">Schalte unbegrenzten Upload für einmalig <strong>2,99 €</strong> frei.</p>
+      <button id="btn-pay-dummy" class="btn btn-success">Jetzt freischalten (Demo)</button>
+    </div>
+  </div>
+
+  <!-- Haupt-App Container -->
   <div class="app-container">
     <video id="camera-feed" autoplay playsinline></video>
     
     <div class="overlay-container">
-      <img id="tracing-image" src="motiv.png" alt="Vorlage">
+      <img id="tracing-image" src="Katze.png" alt="Vorlage">
     </div>
 
+    <!-- Benutzerleiste oben rechts -->
+    <div class="user-bar">
+      <span id="user-display">👤 Gast</span>
+    </div>
+
+    <!-- Steuerung unten -->
     <div class="controls">
       <div class="control-group">
         <label for="opacity-slider">Transparenz:</label>
@@ -21,9 +73,14 @@
       </div>
 
       <div class="control-group buttons">
-        <label for="file-upload" class="btn upload-btn">📷 Bild wählen</label>
+        <!-- Upload Button (Sperrt bei 5 Bildern) -->
+        <label for="file-upload" id="upload-label" class="btn upload-btn">
+          <span id="upload-icon">📷</span> <span id="upload-text">Bild wählen</span>
+        </label>
         <input type="file" id="file-upload" accept="image/*">
         
+        <button id="btn-gallery" class="btn">🖼️ Auswahl (<span id="badge-count">0</span>)</button>
+        <button id="btn-unlock-menu" class="btn btn-warning">🔓 Freischalten</button>
         <button id="btn-flip" class="btn">↔️ Spiegeln</button>
         <button id="btn-rotate" class="btn">🔄 90° Drehen</button>
         <button id="btn-lock" class="btn">🔒 Bild fixieren</button>
@@ -36,17 +93,42 @@
     const image = document.getElementById('tracing-image');
     const slider = document.getElementById('opacity-slider');
     const fileInput = document.getElementById('file-upload');
+    
     const btnFlip = document.getElementById('btn-flip');
     const btnRotate = document.getElementById('btn-rotate');
     const btnLock = document.getElementById('btn-lock');
+    const btnGallery = document.getElementById('btn-gallery');
+    const btnUnlockMenu = document.getElementById('btn-unlock-menu');
+    
+    const uploadLabel = document.getElementById('upload-label');
+    const uploadIcon = document.getElementById('upload-icon');
+    const uploadText = document.getElementById('upload-text');
+    
+    const authModal = document.getElementById('auth-modal');
+    const authForm = document.getElementById('auth-form');
+    const userDisplay = document.getElementById('user-display');
+    
+    const galleryModal = document.getElementById('gallery-modal');
+    const galleryGrid = document.getElementById('gallery-grid');
+    const closeGallery = document.getElementById('close-gallery');
+    const imageCount = document.getElementById('image-count');
+    const badgeCount = document.getElementById('badge-count');
+    
+    const unlockModal = document.getElementById('unlock-modal');
+    const closeUnlock = document.getElementById('close-unlock');
+    const btnPayDummy = document.getElementById('btn-pay-dummy');
 
     let currentRotation = 0;
     let isFlipped = false;
     let isLocked = false;
+    let isPro = localStorage.getItem('pictrac_pro') === 'true';
+    
+    let userImages = JSON.parse(localStorage.getItem('pictrac_images') || '[]');
+    let currentUser = JSON.parse(localStorage.getItem('pictrac_user') || 'null');
 
-    // Kamerastream starten (iOS-optimierte Kamera-Abfrage)
+    // Kamera-Stream starten
     navigator.mediaDevices.getUserMedia({ 
-      video: { facingMode: "environment" } 
+      video: { facingMode: { ideal: "environment" } } 
     })
     .then(stream => { video.srcObject = stream; })
     .catch(() => {
@@ -55,54 +137,125 @@
         .catch(err => console.error("Kamerafehler:", err));
     });
 
-    // Transparenz-Regler
-    slider.addEventListener('input', (e) => {
-      image.style.opacity = e.target.value;
+    // Beim Laden gespeicherten User prüfen
+    if (currentUser) {
+      userDisplay.innerText = `👤 ${currentUser.nickname}`;
+      authModal.classList.add('hidden');
+    }
+
+    // Registrierung verarbeiten & lokal speichern
+    authForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nickname = document.getElementById('nickname').value;
+      const contact = document.getElementById('contact-info').value;
+      currentUser = { nickname, contact };
+      localStorage.setItem('pictrac_user', JSON.stringify(currentUser));
+      userDisplay.innerText = `👤 ${nickname}`;
+      authModal.classList.add('hidden');
     });
 
-    // Upload-Funktion
+    // Upload & Limit Handling
     fileInput.addEventListener('change', (event) => {
+      if (userImages.length >= 5 && !isPro) {
+        unlockModal.classList.remove('hidden');
+        return;
+      }
+
       const file = event.target.files[0];
       if (file) {
         const reader = new FileReader();
         reader.onload = (e) => {
-          image.src = e.target.result;
+          const imageData = e.target.result;
+          image.src = imageData;
+          
+          userImages.push(imageData);
+          localStorage.setItem('pictrac_images', JSON.stringify(userImages));
+          updateGallery();
         };
         reader.readAsDataURL(file);
       }
     });
 
-    // Spiegeln
+    function checkUploadLimit() {
+      const count = userImages.length;
+      imageCount.innerText = count;
+      badgeCount.innerText = count;
+
+      if (count >= 5 && !isPro) {
+        fileInput.disabled = true;
+        uploadLabel.classList.add('disabled-btn');
+        uploadIcon.innerText = "❌";
+        uploadText.innerText = "Gesperrt";
+      } else {
+        fileInput.disabled = false;
+        uploadLabel.classList.remove('disabled-btn');
+        uploadIcon.innerText = "📷";
+        uploadText.innerText = "Bild wählen";
+      }
+    }
+
+    function updateGallery() {
+      galleryGrid.innerHTML = "";
+      userImages.forEach((imgSrc) => {
+        const thumb = document.createElement('img');
+        thumb.src = imgSrc;
+        thumb.classList.add('gallery-thumb');
+        thumb.addEventListener('click', () => {
+          image.src = imgSrc;
+          galleryModal.classList.add('hidden');
+        });
+        galleryGrid.appendChild(thumb);
+      });
+      checkUploadLimit();
+    }
+
+    // Modals Steuerung
+    btnGallery.addEventListener('click', () => galleryModal.classList.remove('hidden'));
+    closeGallery.addEventListener('click', () => galleryModal.classList.add('hidden'));
+    
+    btnUnlockMenu.addEventListener('click', () => unlockModal.classList.remove('hidden'));
+    closeUnlock.addEventListener('click', () => unlockModal.classList.add('hidden'));
+
+    // Freischaltung verarbeiten
+    btnPayDummy.addEventListener('click', () => {
+      isPro = true;
+      localStorage.setItem('pictrac_pro', 'true');
+      alert("Vielen Dank! Die Vollversion ist jetzt aktiv.");
+      unlockModal.classList.add('hidden');
+      checkUploadLimit();
+    });
+
+    // Transparenz & Transformationen
+    slider.addEventListener('input', (e) => { image.style.opacity = e.target.value; });
+
     btnFlip.addEventListener('click', () => {
       if (isLocked) return;
       isFlipped = !isFlipped;
       updateTransform();
     });
 
-    // Drehen
     btnRotate.addEventListener('click', () => {
       if (isLocked) return;
       currentRotation = (currentRotation + 90) % 360;
       updateTransform();
     });
 
-    // Bild fixieren / sperren
     btnLock.addEventListener('click', () => {
       isLocked = !isLocked;
       btnLock.classList.toggle('active', isLocked);
       btnLock.innerText = isLocked ? "🔓 Entsperren" : "🔒 Bild fixieren";
-      
-      // Bedienelemente deaktivieren, wenn gesperrt
       btnFlip.disabled = isLocked;
       btnRotate.disabled = isLocked;
-      fileInput.disabled = isLocked;
+      fileInput.disabled = isLocked || (userImages.length >= 5 && !isPro);
     });
 
-    // Transformation anwenden
     function updateTransform() {
       const scaleX = isFlipped ? -1 : 1;
       image.style.transform = `rotate(${currentRotation}deg) scaleX(${scaleX})`;
     }
+
+    // Initialen Zustand laden
+    updateGallery();
   </script>
 </body>
 </html>

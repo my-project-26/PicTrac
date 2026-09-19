@@ -2,6 +2,9 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 body, html {
@@ -10,6 +13,7 @@ body, html {
   overflow: hidden;
   background-color: #000;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overscroll-behavior-y: none;
 }
 
 .app-container {
@@ -44,9 +48,22 @@ body, html {
   transition: transform 0.2s ease;
 }
 
+.user-bar {
+  position: absolute;
+  top: calc(10px + env(safe-area-inset-top));
+  right: 15px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 10;
+}
+
 .controls {
   position: absolute;
-  bottom: 20px;
+  bottom: calc(20px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.95);
@@ -57,15 +74,15 @@ body, html {
   gap: 12px;
   align-items: center;
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  width: 90%;
-  max-width: 400px;
+  width: 92%;
+  max-width: 420px;
   z-index: 10;
 }
 
 .control-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
   justify-content: center;
 }
@@ -75,7 +92,7 @@ body, html {
 }
 
 label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
   color: #333;
 }
@@ -84,35 +101,28 @@ input[type="range"] {
   flex-grow: 1;
 }
 
-/* Versteckt den Standard-FileInput */
 #file-upload {
   display: none;
 }
 
-/* Einheitliche Buttons */
 .btn {
   background-color: #f0f0f0;
   border: 1px solid #ccc;
   color: #333;
-  padding: 8px 12px;
+  padding: 8px 10px;
   border-radius: 12px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: bold;
   cursor: pointer;
-  user-select: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   transition: background-color 0.2s, transform 0.1s;
 }
 
 .btn:active {
   transform: scale(0.95);
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .upload-btn {
@@ -121,9 +131,119 @@ input[type="range"] {
   color: #0277bd;
 }
 
-/* Hervorhebung für den Sperr-Button */
+/* Deaktivierter Button mit rotem X */
+.upload-btn.disabled-btn {
+  background-color: #ffebee !important;
+  border-color: #ff8a80 !important;
+  color: #c62828 !important;
+  cursor: not-allowed;
+}
+
+.btn-warning {
+  background-color: #fff8e1;
+  border-color: #ffe082;
+  color: #f57f17;
+}
+
+.btn-primary {
+  background-color: #007aff;
+  color: white;
+  border: none;
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.btn-success {
+  background-color: #34c759;
+  color: white;
+  border: none;
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+}
+
 #btn-lock.active {
   background-color: #ff4757;
   color: white;
   border-color: #ff6b81;
+}
+
+/* Modals / Overlays */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 20px;
+  width: 85%;
+  max-width: 350px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+#auth-form input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+/* Galerie Raster */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.gallery-thumb {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #ddd;
+  cursor: pointer;
+}
+
+.gallery-thumb:active {
+  border-color: #007aff;
+}
+
+.price-info {
+  margin: 15px 0;
+  font-size: 14px;
+  color: #555;
 }
