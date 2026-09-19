@@ -51,7 +51,6 @@ body, html {
   flex-shrink: 0;
 }
 
-/* Gesamtes Tracing-Paket wandert dynamisch mit */
 .tracing-wrapper {
   position: relative;
   z-index: 10;
@@ -64,7 +63,6 @@ body, html {
   transition: all 0.3s ease;
 }
 
-/* Stage: Hält linke Leiste, Bild und rechte Leiste nebeneinander */
 .stage-container {
   width: 100vw;
   display: flex;
@@ -74,7 +72,6 @@ body, html {
   padding: 0 8px;
 }
 
-/* Seitliche Regler & Tasten */
 .side-bar {
   display: flex;
   flex-direction: column;
@@ -88,7 +85,6 @@ body, html {
   z-index: 15;
 }
 
-/* Vertikaler Transparenz-Slider */
 .left-bar input[type="range"] {
   -webkit-appearance: slider-vertical;
   writing-mode: bt-lr;
@@ -101,7 +97,6 @@ body, html {
   font-size: 14px;
 }
 
-/* Zoom Tasten (+ / -) */
 .zoom-btn {
   width: 32px;
   height: 32px;
@@ -124,7 +119,6 @@ body, html {
   border-color: #0056b3;
 }
 
-/* Das Vorlagenbild */
 .overlay-container {
   display: flex;
   justify-content: center;
@@ -142,13 +136,11 @@ body, html {
   transition: all 0.3s ease;
 }
 
-/* Maximal-Zustand beim Druck auf + */
 #tracing-image.maximized {
   max-width: 82vw;
   max-height: 55dvh;
 }
 
-/* Menü klebt direkt unter der Stage und wandert mit */
 .controls {
   background: rgba(255, 255, 255, 0.95);
   padding: 8px 12px;
@@ -228,13 +220,18 @@ body, html {
   transform: scale(0.95);
 }
 
+#btn-torch.active {
+  background-color: #ffcc00;
+  border-color: #e6b800;
+  color: #000;
+}
+
 .upload-btn {
   background-color: #e1f5fe;
   border-color: #81d4fa;
   color: #0277bd;
 }
 
-/* Roter Zustand für gesperrten Upload eigener Bilder */
 .upload-btn.disabled-btn {
   background-color: #ffebee !important;
   border-color: #ff8a80 !important;
@@ -288,7 +285,6 @@ body, html {
   border-color: #ff6b81;
 }
 
-/* Modals */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -339,7 +335,6 @@ body, html {
   font-size: 14px;
 }
 
-/* Galerie Raster */
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -357,7 +352,6 @@ body, html {
   cursor: pointer;
 }
 
-/* Payment-Box (Bankverbindung) */
 .payment-box {
   background: #f8f9fa;
   border: 1px dashed #007aff;

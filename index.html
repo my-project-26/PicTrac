@@ -12,7 +12,7 @@
 </head>
 <body>
 
-  <!-- 1. Registrierungs / Login Modal -->
+  <!-- Registrierungs / Login Modal -->
   <div id="auth-modal" class="modal-overlay">
     <div class="modal-content">
       <h2>Willkommen bei PicTrac! 🎨</h2>
@@ -26,7 +26,7 @@
     </div>
   </div>
 
-  <!-- 2. Galerie Modal -->
+  <!-- Galerie Modal -->
   <div id="gallery-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -37,7 +37,7 @@
     </div>
   </div>
 
-  <!-- 3. Freischalt Modal -->
+  <!-- Freischalt Modal -->
   <div id="unlock-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -111,9 +111,10 @@
             
             <button id="btn-gallery" class="btn">🖼️ Auswahl (<span id="badge-count">0</span>)</button>
             <button id="btn-unlock-menu" class="btn btn-warning">🔓 Freischalten</button>
-            <button id="btn-flip" class="btn">↔️ Spiegeln</button>
+            
+            <button id="btn-torch" class="btn">🔦 Licht</button>
             <button id="btn-rotate" class="btn">🔄 90° Drehen</button>
-            <button id="btn-lock" class="btn">🔒 Position fixieren</button>
+            <button id="btn-lock" class="btn">🔒 alles Blockieren zum malen</button>
           </div>
         </div>
       </div>
@@ -126,13 +127,11 @@
     
     const VALID_CODES = ["PRO-2026", "PIC-TRAC-PRO", "KAI-2026"];
 
-    // Bonus-Bilder aus deinem 'update'-Ordner
     const updateFolderImages = [
       "update/Bonus_1.png",
       "update/Bonus_2.png"
     ];
 
-    // Standard-Vorlagen
     const defaultSystemImages = [
       "Katze.png",
       "Hund.png",
@@ -160,7 +159,7 @@
     const btnZoomIn = document.getElementById('btn-zoom-in');
     const btnZoomOut = document.getElementById('btn-zoom-out');
     
-    const btnFlip = document.getElementById('btn-flip');
+    const btnTorch = document.getElementById('btn-torch');
     const btnRotate = document.getElementById('btn-rotate');
     const btnLock = document.getElementById('btn-lock');
     const btnGallery = document.getElementById('btn-gallery');
@@ -190,8 +189,9 @@
     const unlockCodeInput = document.getElementById('unlock-code-input');
 
     let currentRotation = 0;
-    let isFlipped = false;
     let isLocked = false;
+    let isTorchOn = false;
+    let videoTrack = null;
     let isPro = localStorage.getItem('pictrac_pro') === 'true';
     let isMenuCollapsed = false;
     
@@ -221,14 +221,44 @@
       btnToggleView.innerText = isMenuCollapsed ? "🔼" : "🔽";
     });
 
+    // Kamera mit Rückkamera initialisieren
     navigator.mediaDevices.getUserMedia({ 
       video: { facingMode: { ideal: "environment" } } 
     })
-    .then(stream => { video.srcObject = stream; })
+    .then(stream => { 
+      video.srcObject = stream;
+      videoTrack = stream.getVideoTracks()[0];
+    })
     .catch(() => {
       navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => { video.srcObject = stream; })
+        .then(stream => { 
+          video.srcObject = stream;
+          videoTrack = stream.getVideoTracks()[0];
+        })
         .catch(err => console.error("Kamerafehler:", err));
+    });
+
+    // Hardware-LED Taschenlampe schalten
+    btnTorch.addEventListener('click', async () => {
+      if (!videoTrack) return;
+
+      const capabilities = videoTrack.getCapabilities ? videoTrack.getCapabilities() : {};
+      
+      // Hardware-Torch vorhanden? (z.B. Android/Chrome)
+      if (capabilities.torch) {
+        isTorchOn = !isTorchOn;
+        try {
+          await videoTrack.applyConstraints({
+            advanced: [{ torch: isTorchOn }]
+          });
+          btnTorch.classList.toggle('active', isTorchOn);
+        } catch (e) {
+          alert("Fehler beim Einschalten der Taschenlampe.");
+        }
+      } else {
+        // iOS/Safari Einschränkung abfangen
+        alert("Hinweis: Auf iOS/Safari schützt Apple den Zugriff auf die Kamera-LED in Webseiten. Bitte aktiviere die Taschenlampe direkt im Kontrollzentrum deines iPhones.");
+      }
     });
 
     if (currentUser) {
@@ -258,7 +288,6 @@
       }).catch(err => console.error("E-Mail Sende-Fehler:", err));
     });
 
-    // Klick auf gesperrten Upload öffnet direkt das Pay-Modal
     uploadLabel.addEventListener('click', (e) => {
       if (!isPro) {
         e.preventDefault();
@@ -266,7 +295,6 @@
       }
     });
 
-    // CODE-PRÜFUNG FÜR PRO-FREISCHALTUNG
     btnSubmitCode.addEventListener('click', () => {
       const enteredCode = unlockCodeInput.value.trim().toUpperCase();
       
@@ -274,7 +302,6 @@
         isPro = true;
         localStorage.setItem('pictrac_pro', 'true');
         
-        // Bonus-Bilder hinzufügen
         updateFolderImages.forEach(imgPath => {
           if (!userImages.includes(imgPath)) {
             userImages.push(imgPath);
@@ -316,7 +343,6 @@
       }
     });
 
-    // Status-Steuerung: Schaltet den Upload-Button erst nach der Bezahlung frei
     function checkProStatus() {
       const count = userImages.length;
       imageCount.innerText = count;
@@ -355,12 +381,6 @@
 
     slider.addEventListener('input', (e) => { image.style.opacity = e.target.value; });
 
-    btnFlip.addEventListener('click', () => {
-      if (isLocked) return;
-      isFlipped = !isFlipped;
-      updateTransform();
-    });
-
     btnRotate.addEventListener('click', () => {
       if (isLocked) return;
       currentRotation = (currentRotation + 90) % 360;
@@ -370,14 +390,17 @@
     btnLock.addEventListener('click', () => {
       isLocked = !isLocked;
       btnLock.classList.toggle('active', isLocked);
-      btnLock.innerText = isLocked ? "🔓 Position fixiert" : "🔒 Position fixieren";
-      btnFlip.disabled = isLocked;
+      btnLock.innerText = isLocked ? "🔓 Freigeben" : "🔒 alles Blockieren zum malen";
       btnRotate.disabled = isLocked;
+      btnGallery.disabled = isLocked;
+      btnUnlockMenu.disabled = isLocked;
+      btnZoomIn.disabled = isLocked;
+      btnZoomOut.disabled = isLocked;
+      slider.disabled = isLocked;
     });
 
     function updateTransform() {
-      const scaleX = isFlipped ? -1 : 1;
-      image.style.transform = `rotate(${currentRotation}deg) scaleX(${scaleX})`;
+      image.style.transform = `rotate(${currentRotation}deg)`;
     }
 
     updateGallery();
