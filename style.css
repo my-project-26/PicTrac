@@ -283,7 +283,7 @@ body, html {
   border-color: #ff6b81;
 }
 
-/* Modals / Dialogfenster */
+/* Modals */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -352,7 +352,7 @@ body, html {
   cursor: pointer;
 }
 
-/* Payment-Box (Revolut / Bankverbindung) */
+/* Payment-Box (Bankverbindung) */
 .payment-box {
   background: #f8f9fa;
   border: 1px dashed #007aff;

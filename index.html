@@ -12,7 +12,7 @@
 </head>
 <body>
 
-  <!-- Registrierungs Modal -->
+  <!-- 1. Registrierungs / Login Modal -->
   <div id="auth-modal" class="modal-overlay">
     <div class="modal-content">
       <h2>Willkommen bei PicTrac! 🎨</h2>
@@ -26,7 +26,7 @@
     </div>
   </div>
 
-  <!-- Galerie Modal -->
+  <!-- 2. Galerie Modal -->
   <div id="gallery-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -37,7 +37,7 @@
     </div>
   </div>
 
-  <!-- Freischalt Modal mit deinen echten Kontodaten -->
+  <!-- 3. Freischalt Modal (Bankverbindung & Aktivierungscode) -->
   <div id="unlock-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -60,7 +60,6 @@
         <button id="btn-submit-code" class="btn btn-success">Code aktivieren</button>
       </div>
 
-      <!-- Abbrechen Button -->
       <button id="btn-cancel-unlock" class="btn btn-secondary">Abbrechen & weiterzeichnen</button>
     </div>
   </div>
@@ -125,13 +124,33 @@
   <script>
     const FORMSPREE_ENDPOINT = "https://formspree.io/f/xnpnnede";
     
-    // Gültige Aktivierungs-Codes (kannst du beliebig ergänzen):
+    // Gültige Aktivierungs-Codes
     const VALID_CODES = ["PRO-2026", "PIC-TRAC-PRO", "KAI-2026"];
 
-    // Bonus-Bilder aus deinem 'update'-Ordner:
+    // Bonus-Bilder aus deinem 'update'-Ordner (für Freischaltung)
     const updateFolderImages = [
       "update/Bonus_1.png",
       "update/Bonus_2.png"
+    ];
+
+    // Standard-Bilder aus deinem Hauptordner
+    const defaultSystemImages = [
+      "Katze.png",
+      "Hund.png",
+      "Apfel.png",
+      "Banane.png",
+      "Berge_1.png",
+      "Blumenstrauss.png",
+      "Crazy-Frog.png",
+      "Dalmatiner.png",
+      "Delphin_1.png",
+      "Drache_1.png",
+      "Einhorn_1.png",
+      "Fahrrad_2.png",
+      "Katze_2.png",
+      "Pferd_1.png",
+      "Robbe_1.png",
+      "Vogel_1.png"
     ];
 
     const video = document.getElementById('camera-feed');
@@ -177,7 +196,13 @@
     let isPro = localStorage.getItem('pictrac_pro') === 'true';
     let isMenuCollapsed = false;
     
-    let userImages = JSON.parse(localStorage.getItem('pictrac_images') || '[]');
+    // Bilder-Speicher initialisieren (falls leer, Standardbilder laden)
+    let userImages = JSON.parse(localStorage.getItem('pictrac_images') || 'null');
+    if (!userImages || userImages.length === 0) {
+      userImages = defaultSystemImages;
+      localStorage.setItem('pictrac_images', JSON.stringify(userImages));
+    }
+
     let currentUser = JSON.parse(localStorage.getItem('pictrac_user') || 'null');
 
     // ZOOM-LOGIK (+ / -)
@@ -216,6 +241,7 @@
       authModal.classList.add('hidden');
     }
 
+    // Registrierung verarbeiten
     authForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const nickname = document.getElementById('nickname').value;
