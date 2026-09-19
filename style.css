@@ -51,7 +51,7 @@ body, html {
   flex-shrink: 0;
 }
 
-/* Gesamtes Tracing-Paket wandert sanft mit */
+/* Gesamtes Tracing-Paket wandert dynamisch mit */
 .tracing-wrapper {
   position: relative;
   z-index: 10;
@@ -139,7 +139,7 @@ body, html {
   opacity: 0.7;
   mix-blend-mode: multiply;
   filter: contrast(150%);
-  transition: all 0.3s ease; /* Weicher Übergang beim Zoomen */
+  transition: all 0.3s ease;
 }
 
 /* Maximal-Zustand beim Druck auf + */
@@ -265,13 +265,25 @@ body, html {
   margin-top: 10px;
 }
 
+.btn-secondary {
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
 #btn-lock.active {
   background-color: #ff4757;
   color: white;
   border-color: #ff6b81;
 }
 
-/* Modals */
+/* Modals / Dialogfenster */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -322,6 +334,7 @@ body, html {
   font-size: 14px;
 }
 
+/* Galerie Raster */
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -339,8 +352,42 @@ body, html {
   cursor: pointer;
 }
 
-.price-info {
-  margin: 15px 0;
+/* Payment-Box (Revolut / Bankverbindung) */
+.payment-box {
+  background: #f8f9fa;
+  border: 1px dashed #007aff;
+  padding: 12px;
+  border-radius: 12px;
+  margin: 12px 0;
+  font-size: 13px;
+  text-align: left;
+}
+
+.payment-box code {
+  background: #e1f5fe;
+  color: #0277bd;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.small-text {
+  font-size: 11px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.code-box {
+  margin-top: 15px;
+}
+
+.code-box input {
+  width: 100%;
+  padding: 8px;
+  margin: 6px 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
   font-size: 14px;
-  color: #555;
 }

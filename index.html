@@ -37,16 +37,31 @@
     </div>
   </div>
 
-  <!-- Freischalt Modal -->
+  <!-- Freischalt Modal mit deinen echten Kontodaten -->
   <div id="unlock-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-header">
         <h3>Pro-Version freischalten 🚀</h3>
         <button id="close-unlock" class="close-btn">&times;</button>
       </div>
-      <p>Du hast dein kostenloses Limit von 5 Bildern erreicht!</p>
-      <p class="price-info">Schalte unbegrenzten Upload für einmalig <strong>2,99 €</strong> frei.</p>
-      <button id="btn-pay-dummy" class="btn btn-success">Jetzt freischalten (Demo)</button>
+      
+      <p>Unbegrenzter Upload & exklusive Bonus-Bilder für einmalig <strong>2,99 €</strong>!</p>
+      
+      <div class="payment-box">
+        <p><strong>Bankverbindung für Überweisung:</strong></p>
+        <p>Empfänger: <strong>Kai Buhmeier</strong></p>
+        <p>IBAN: <code>DE10100101789008685459</code></p>
+        <p class="small-text">Verwendungszweck: <strong>Dein Nickname</strong></p>
+      </div>
+
+      <div class="code-box">
+        <p>Hast du bereits gezahlt? Gib deinen Code ein:</p>
+        <input type="text" id="unlock-code-input" placeholder="z. B. PRO-2026">
+        <button id="btn-submit-code" class="btn btn-success">Code aktivieren</button>
+      </div>
+
+      <!-- Abbrechen Button -->
+      <button id="btn-cancel-unlock" class="btn btn-secondary">Abbrechen & weiterzeichnen</button>
     </div>
   </div>
 
@@ -59,7 +74,7 @@
       <span id="user-display">👤 Gast</span>
     </div>
 
-    <!-- DYNAMISCHE EINHEIT: Bild + Seitliche Leisten + Menü direkt darunter -->
+    <!-- DYNAMISCHE EINHEIT: Bild + Seitliche Leisten + Menü -->
     <div class="tracing-wrapper">
       
       <div class="stage-container">
@@ -109,6 +124,15 @@
 
   <script>
     const FORMSPREE_ENDPOINT = "https://formspree.io/f/xnpnnede";
+    
+    // Gültige Aktivierungs-Codes (kannst du beliebig ergänzen):
+    const VALID_CODES = ["PRO-2026", "PIC-TRAC-PRO", "KAI-2026"];
+
+    // Bonus-Bilder aus deinem 'update'-Ordner:
+    const updateFolderImages = [
+      "update/Bonus_1.png",
+      "update/Bonus_2.png"
+    ];
 
     const video = document.getElementById('camera-feed');
     const image = document.getElementById('tracing-image');
@@ -143,7 +167,9 @@
     
     const unlockModal = document.getElementById('unlock-modal');
     const closeUnlock = document.getElementById('close-unlock');
-    const btnPayDummy = document.getElementById('btn-pay-dummy');
+    const btnCancelUnlock = document.getElementById('btn-cancel-unlock');
+    const btnSubmitCode = document.getElementById('btn-submit-code');
+    const unlockCodeInput = document.getElementById('unlock-code-input');
 
     let currentRotation = 0;
     let isFlipped = false;
@@ -212,6 +238,34 @@
       }).catch(err => console.error("E-Mail Sende-Fehler:", err));
     });
 
+    // CODE-PRÜFUNG FÜR PRO-FREISCHALTUNG
+    btnSubmitCode.addEventListener('click', () => {
+      const enteredCode = unlockCodeInput.value.trim().toUpperCase();
+      
+      if (VALID_CODES.includes(enteredCode)) {
+        isPro = true;
+        localStorage.setItem('pictrac_pro', 'true');
+        
+        // Bonus-Bilder hinzufügen
+        updateFolderImages.forEach(imgPath => {
+          if (!userImages.includes(imgPath)) {
+            userImages.push(imgPath);
+          }
+        });
+        localStorage.setItem('pictrac_images', JSON.stringify(userImages));
+
+        alert("🎉 Code erfolgreich eingelöst! Die Pro-Version & Bonus-Bilder sind ab sofort aktiv.");
+        unlockModal.classList.add('hidden');
+        updateGallery();
+      } else {
+        alert("❌ Ungültiger Code. Bitte überprüfe deine Eingabe oder kontaktiere den Support.");
+      }
+    });
+
+    btnCancelUnlock.addEventListener('click', () => unlockModal.classList.add('hidden'));
+    closeUnlock.addEventListener('click', () => unlockModal.classList.add('hidden'));
+    btnUnlockMenu.addEventListener('click', () => unlockModal.classList.remove('hidden'));
+
     fileInput.addEventListener('change', (event) => {
       if (userImages.length >= 5 && !isPro) {
         unlockModal.classList.remove('hidden');
@@ -268,17 +322,6 @@
 
     btnGallery.addEventListener('click', () => galleryModal.classList.remove('hidden'));
     closeGallery.addEventListener('click', () => galleryModal.classList.add('hidden'));
-    
-    btnUnlockMenu.addEventListener('click', () => unlockModal.classList.remove('hidden'));
-    closeUnlock.addEventListener('click', () => unlockModal.classList.add('hidden'));
-
-    btnPayDummy.addEventListener('click', () => {
-      isPro = true;
-      localStorage.setItem('pictrac_pro', 'true');
-      alert("Vielen Dank! Die Vollversion ist jetzt aktiv.");
-      unlockModal.classList.add('hidden');
-      checkUploadLimit();
-    });
 
     slider.addEventListener('input', (e) => { image.style.opacity = e.target.value; });
 
