@@ -12,34 +12,32 @@
 </head>
 <body>
 
-  <!-- 1. Registrierungs / Login Modal -->
+  <!-- Registrierungs Modal -->
   <div id="auth-modal" class="modal-overlay">
     <div class="modal-content">
       <h2>Willkommen bei PicTrac! 🎨</h2>
       <p>Bitte erstelle ein Profil, um zu starten.</p>
       
       <form id="auth-form">
-        <input type="text" id="nickname" placeholder="Dein Nickname" required>
-        <input type="text" id="contact-info" placeholder="E-Mail oder Handynummer" required>
+        <input type="text" id="nickname" name="nickname" placeholder="Dein Nickname" required>
+        <input type="text" id="contact-info" name="kontakt" placeholder="E-Mail oder Handynummer" required>
         <button type="submit" class="btn btn-primary">Starten</button>
       </form>
     </div>
   </div>
 
-  <!-- 2. Modal für die Bild-Auswahl (Max 5 Bilder) -->
+  <!-- Galerie Modal -->
   <div id="gallery-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-header">
         <h3>Meine Auswahl (<span id="image-count">0</span>/5)</h3>
         <button id="close-gallery" class="close-btn">&times;</button>
       </div>
-      <div id="gallery-grid" class="gallery-grid">
-        <!-- Vorschaubilder werden per JS dynamisch eingefügt -->
-      </div>
+      <div id="gallery-grid" class="gallery-grid"></div>
     </div>
   </div>
 
-  <!-- 3. Modal für Freischaltung / Zahlungsoption -->
+  <!-- Freischalt Modal -->
   <div id="unlock-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -55,40 +53,49 @@
   <!-- Haupt-App Container -->
   <div class="app-container">
     <video id="camera-feed" autoplay playsinline></video>
-    
-    <div class="overlay-container">
-      <img id="tracing-image" src="Katze.png" alt="Vorlage">
-    </div>
 
-    <!-- Benutzerleiste oben rechts -->
-    <div class="user-bar">
-      <span id="user-display">👤 Gast</span>
+    <!-- Top-Header Bereich mit User-Bar & Vorlage direkt darunter -->
+    <div class="top-section">
+      <div class="user-bar">
+        <span id="user-display">👤 Gast</span>
+      </div>
+      <div class="overlay-container">
+        <img id="tracing-image" src="Katze.png" alt="Vorlage">
+      </div>
     </div>
 
     <!-- Steuerung unten -->
-    <div class="controls">
-      <div class="control-group">
-        <label for="opacity-slider">Transparenz:</label>
-        <input type="range" id="opacity-slider" min="0" max="1" step="0.05" value="0.7">
+    <div class="controls" id="draggable-controls">
+      <div class="controls-header" id="toggle-menu">
+        <span class="drag-handle">⚙️ Menü</span>
+        <button id="btn-toggle-view" class="btn-icon">🔽</button>
       </div>
 
-      <div class="control-group buttons">
-        <!-- Upload Button (Sperrt bei 5 Bildern) -->
-        <label for="file-upload" id="upload-label" class="btn upload-btn">
-          <span id="upload-icon">📷</span> <span id="upload-text">Bild wählen</span>
-        </label>
-        <input type="file" id="file-upload" accept="image/*">
-        
-        <button id="btn-gallery" class="btn">🖼️ Auswahl (<span id="badge-count">0</span>)</button>
-        <button id="btn-unlock-menu" class="btn btn-warning">🔓 Freischalten</button>
-        <button id="btn-flip" class="btn">↔️ Spiegeln</button>
-        <button id="btn-rotate" class="btn">🔄 90° Drehen</button>
-        <button id="btn-lock" class="btn">🔒 Bild fixieren</button>
+      <div class="controls-body" id="controls-body">
+        <div class="control-group">
+          <label for="opacity-slider">Transparenz:</label>
+          <input type="range" id="opacity-slider" min="0" max="1" step="0.05" value="0.7">
+        </div>
+
+        <div class="control-group buttons">
+          <label for="file-upload" id="upload-label" class="btn upload-btn">
+            <span id="upload-icon">📷</span> <span id="upload-text">Bild wählen</span>
+          </label>
+          <input type="file" id="file-upload" accept="image/*">
+          
+          <button id="btn-gallery" class="btn">🖼️ Auswahl (<span id="badge-count">0</span>)</button>
+          <button id="btn-unlock-menu" class="btn btn-warning">🔓 Freischalten</button>
+          <button id="btn-flip" class="btn">↔️ Spiegeln</button>
+          <button id="btn-rotate" class="btn">🔄 90° Drehen</button>
+          <button id="btn-lock" class="btn">🔒 Fixieren</button>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
+    const FORMSPREE_ENDPOINT = "https://formspree.io/f/xnpnnede";
+
     const video = document.getElementById('camera-feed');
     const image = document.getElementById('tracing-image');
     const slider = document.getElementById('opacity-slider');
@@ -99,6 +106,9 @@
     const btnLock = document.getElementById('btn-lock');
     const btnGallery = document.getElementById('btn-gallery');
     const btnUnlockMenu = document.getElementById('btn-unlock-menu');
+    const btnToggleView = document.getElementById('btn-toggle-view');
+    const controlsBody = document.getElementById('controls-body');
+    const toggleMenu = document.getElementById('toggle-menu');
     
     const uploadLabel = document.getElementById('upload-label');
     const uploadIcon = document.getElementById('upload-icon');
@@ -122,11 +132,17 @@
     let isFlipped = false;
     let isLocked = false;
     let isPro = localStorage.getItem('pictrac_pro') === 'true';
+    let isMenuCollapsed = false;
     
     let userImages = JSON.parse(localStorage.getItem('pictrac_images') || '[]');
     let currentUser = JSON.parse(localStorage.getItem('pictrac_user') || 'null');
 
-    // Kamera-Stream starten
+    toggleMenu.addEventListener('click', () => {
+      isMenuCollapsed = !isMenuCollapsed;
+      controlsBody.classList.toggle('collapsed', isMenuCollapsed);
+      btnToggleView.innerText = isMenuCollapsed ? "🔼" : "🔽";
+    });
+
     navigator.mediaDevices.getUserMedia({ 
       video: { facingMode: { ideal: "environment" } } 
     })
@@ -137,24 +153,33 @@
         .catch(err => console.error("Kamerafehler:", err));
     });
 
-    // Beim Laden gespeicherten User prüfen
     if (currentUser) {
       userDisplay.innerText = `👤 ${currentUser.nickname}`;
       authModal.classList.add('hidden');
     }
 
-    // Registrierung verarbeiten & lokal speichern
     authForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const nickname = document.getElementById('nickname').value;
       const contact = document.getElementById('contact-info').value;
+      
       currentUser = { nickname, contact };
       localStorage.setItem('pictrac_user', JSON.stringify(currentUser));
       userDisplay.innerText = `👤 ${nickname}`;
       authModal.classList.add('hidden');
+
+      fetch(FORMSPREE_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          _subject: "Neue Registrierung bei PicTrac!",
+          Nickname: nickname,
+          Kontakt: contact,
+          Datum: new Date().toLocaleString()
+        })
+      }).catch(err => console.error("E-Mail Sende-Fehler:", err));
     });
 
-    // Upload & Limit Handling
     fileInput.addEventListener('change', (event) => {
       if (userImages.length >= 5 && !isPro) {
         unlockModal.classList.remove('hidden');
@@ -209,14 +234,12 @@
       checkUploadLimit();
     }
 
-    // Modals Steuerung
     btnGallery.addEventListener('click', () => galleryModal.classList.remove('hidden'));
     closeGallery.addEventListener('click', () => galleryModal.classList.add('hidden'));
     
     btnUnlockMenu.addEventListener('click', () => unlockModal.classList.remove('hidden'));
     closeUnlock.addEventListener('click', () => unlockModal.classList.add('hidden'));
 
-    // Freischaltung verarbeiten
     btnPayDummy.addEventListener('click', () => {
       isPro = true;
       localStorage.setItem('pictrac_pro', 'true');
@@ -225,7 +248,6 @@
       checkUploadLimit();
     });
 
-    // Transparenz & Transformationen
     slider.addEventListener('input', (e) => { image.style.opacity = e.target.value; });
 
     btnFlip.addEventListener('click', () => {
@@ -243,7 +265,7 @@
     btnLock.addEventListener('click', () => {
       isLocked = !isLocked;
       btnLock.classList.toggle('active', isLocked);
-      btnLock.innerText = isLocked ? "🔓 Entsperren" : "🔒 Bild fixieren";
+      btnLock.innerText = isLocked ? "🔓 Entsperren" : "🔒 Fixieren";
       btnFlip.disabled = isLocked;
       btnRotate.disabled = isLocked;
       fileInput.disabled = isLocked || (userImages.length >= 5 && !isPro);
@@ -254,7 +276,6 @@
       image.style.transform = `rotate(${currentRotation}deg) scaleX(${scaleX})`;
     }
 
-    // Initialen Zustand laden
     updateGallery();
   </script>
 </body>
