@@ -10,18 +10,24 @@
 body, html {
   width: 100%;
   height: 100%;
+  height: 100dvh; /* Dynamische Viewport-Höhe für mobile Browser */
   overflow: hidden;
   background-color: #000;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overscroll-behavior-y: none;
 }
 
+/* Haupt-Container mit exakter Ausrichtung */
 .app-container {
   position: relative;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: calc(8px + env(safe-area-inset-top));
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
 }
 
 #camera-feed {
@@ -34,67 +40,58 @@ body, html {
   z-index: 1;
 }
 
+/* User Profile Badge ganz oben */
 .user-bar {
-  position: absolute;
-  top: calc(8px + env(safe-area-inset-top));
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
+  position: relative;
+  z-index: 10;
   background: rgba(0, 0, 0, 0.6);
   color: white;
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 11px;
   font-weight: bold;
+  flex-shrink: 0;
 }
 
-/* Haupt-Layout Fluss */
-.main-layout {
+/* Bild-Bereich: Sitzt knapp unter dem User-Namen */
+.overlay-container {
   position: relative;
   z-index: 10;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding-top: calc(35px + env(safe-area-inset-top));
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
-}
-
-/* Bild dehnt sich von linkem bis rechtem Rand aus (100% W) */
-.overlay-container {
-  width: 100vw;
+  width: 100%;
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 0;
+  min-height: 0; /* Verhindert Überlappen */
   pointer-events: none;
+  padding: 0 16px; /* Abstand nach links und rechts */
 }
 
 #tracing-image {
-  width: 100vw; /* Maximal groß von linkem bis rechtem Rand */
-  height: 100%;
-  object-fit: contain; /* Seitenverhältnisse bleiben exakt erhalten */
+  max-width: 82vw; /* Abstand nach links und rechts */
+  max-height: 42dvh; /* Garantiert ausreichend Platz für das Menü darunter */
+  object-fit: contain;
   opacity: 0.7;
   mix-blend-mode: multiply;
   filter: contrast(150%);
   transition: transform 0.2s ease;
 }
 
-/* Menü direkt unter dem Bild angehängt, vollständig sichtbar */
+/* Das Menü: Immer 100% im sichtbaren Bereich verankert */
 .controls {
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0; /* Das Menü kann niemals gequetscht oder verschoben werden */
   background: rgba(255, 255, 255, 0.95);
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  width: 96vw;
-  max-width: 420px;
-  align-self: center;
-  margin-bottom: 2px;
+  width: 92vw;
+  max-width: 400px;
+  margin-bottom: 4px;
 }
 
 .controls-header {
@@ -149,7 +146,7 @@ body, html {
 }
 
 label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: bold;
   color: #333;
 }
@@ -231,7 +228,7 @@ input[type="range"] {
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
