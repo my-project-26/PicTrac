@@ -54,40 +54,42 @@
   <div class="app-container">
     <video id="camera-feed" autoplay playsinline></video>
 
-    <!-- Top-Header Bereich mit User-Bar & Vorlage direkt darunter -->
-    <div class="top-section">
-      <div class="user-bar">
-        <span id="user-display">👤 Gast</span>
-      </div>
+    <!-- User Bar ganz oben -->
+    <div class="user-bar">
+      <span id="user-display">👤 Gast</span>
+    </div>
+
+    <!-- ZENTRALE GRUPPE: Bild + direkt darunter angeschlossenes Menü -->
+    <div class="tracing-wrapper">
       <div class="overlay-container">
         <img id="tracing-image" src="Katze.png" alt="Vorlage">
       </div>
-    </div>
 
-    <!-- Steuerung unten -->
-    <div class="controls" id="draggable-controls">
-      <div class="controls-header" id="toggle-menu">
-        <span class="drag-handle">⚙️ Menü</span>
-        <button id="btn-toggle-view" class="btn-icon">🔽</button>
-      </div>
-
-      <div class="controls-body" id="controls-body">
-        <div class="control-group">
-          <label for="opacity-slider">Transparenz:</label>
-          <input type="range" id="opacity-slider" min="0" max="1" step="0.05" value="0.7">
+      <!-- Menü ist jetzt direkt Teil der Image-Gruppe -->
+      <div class="controls" id="draggable-controls">
+        <div class="controls-header" id="toggle-menu">
+          <span class="drag-handle">⚙️ Menü</span>
+          <button id="btn-toggle-view" class="btn-icon">🔽</button>
         </div>
 
-        <div class="control-group buttons">
-          <label for="file-upload" id="upload-label" class="btn upload-btn">
-            <span id="upload-icon">📷</span> <span id="upload-text">Bild wählen</span>
-          </label>
-          <input type="file" id="file-upload" accept="image/*">
-          
-          <button id="btn-gallery" class="btn">🖼️ Auswahl (<span id="badge-count">0</span>)</button>
-          <button id="btn-unlock-menu" class="btn btn-warning">🔓 Freischalten</button>
-          <button id="btn-flip" class="btn">↔️ Spiegeln</button>
-          <button id="btn-rotate" class="btn">🔄 90° Drehen</button>
-          <button id="btn-lock" class="btn">🔒 Fixieren</button>
+        <div class="controls-body" id="controls-body">
+          <div class="control-group">
+            <label for="opacity-slider">Transparenz:</label>
+            <input type="range" id="opacity-slider" min="0" max="1" step="0.05" value="0.7">
+          </div>
+
+          <div class="control-group buttons">
+            <label for="file-upload" id="upload-label" class="btn upload-btn">
+              <span id="upload-icon">📷</span> <span id="upload-text">Bild wählen</span>
+            </label>
+            <input type="file" id="file-upload" accept="image/*">
+            
+            <button id="btn-gallery" class="btn">🖼️ Auswahl (<span id="badge-count">0</span>)</button>
+            <button id="btn-unlock-menu" class="btn btn-warning">🔓 Freischalten</button>
+            <button id="btn-flip" class="btn">↔️ Spiegeln</button>
+            <button id="btn-rotate" class="btn">🔄 90° Drehen</button>
+            <button id="btn-lock" class="btn">🔒 Fixieren</button>
+          </div>
         </div>
       </div>
     </div>
