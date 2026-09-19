@@ -10,24 +10,22 @@
 body, html {
   width: 100%;
   height: 100%;
-  height: 100dvh; /* Dynamische Viewport-Höhe für mobile Browser */
+  height: 100dvh;
   overflow: hidden;
   background-color: #000;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overscroll-behavior-y: none;
 }
 
-/* Haupt-Container mit exakter Ausrichtung */
 .app-container {
   position: relative;
   width: 100vw;
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: center;
-  padding-top: calc(8px + env(safe-area-inset-top));
-  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  justify-content: flex-start;
+  overflow: hidden;
 }
 
 #camera-feed {
@@ -40,10 +38,10 @@ body, html {
   z-index: 1;
 }
 
-/* User Profile Badge ganz oben */
 .user-bar {
   position: relative;
-  z-index: 10;
+  z-index: 20;
+  margin-top: calc(8px + env(safe-area-inset-top));
   background: rgba(0, 0, 0, 0.6);
   color: white;
   padding: 4px 12px;
@@ -53,45 +51,114 @@ body, html {
   flex-shrink: 0;
 }
 
-/* Bild-Bereich: Sitzt knapp unter dem User-Namen */
-.overlay-container {
+/* Gesamtes Tracing-Paket wandert sanft mit */
+.tracing-wrapper {
   position: relative;
   z-index: 10;
-  width: 100%;
-  flex: 1;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  transition: all 0.3s ease;
+}
+
+/* Stage: Hält linke Leiste, Bild und rechte Leiste nebeneinander */
+.stage-container {
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+/* Seitliche Regler & Tasten */
+.side-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 6px;
+  gap: 8px;
+  z-index: 15;
+}
+
+/* Vertikaler Transparenz-Slider */
+.left-bar input[type="range"] {
+  -webkit-appearance: slider-vertical;
+  writing-mode: bt-lr;
+  width: 20px;
+  height: 120px;
+  accent-color: #007aff;
+}
+
+.bar-label {
+  font-size: 14px;
+}
+
+/* Zoom Tasten (+ / -) */
+.zoom-btn {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.zoom-btn.active {
+  background: #007aff;
+  color: white;
+  border-color: #0056b3;
+}
+
+/* Das Vorlagenbild */
+.overlay-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 0; /* Verhindert Überlappen */
   pointer-events: none;
-  padding: 0 16px; /* Abstand nach links und rechts */
 }
 
 #tracing-image {
-  max-width: 82vw; /* Abstand nach links und rechts */
-  max-height: 42dvh; /* Garantiert ausreichend Platz für das Menü darunter */
+  max-width: 68vw;
+  max-height: 42dvh;
   object-fit: contain;
   opacity: 0.7;
   mix-blend-mode: multiply;
   filter: contrast(150%);
-  transition: transform 0.2s ease;
+  transition: all 0.3s ease; /* Weicher Übergang beim Zoomen */
 }
 
-/* Das Menü: Immer 100% im sichtbaren Bereich verankert */
+/* Maximal-Zustand beim Druck auf + */
+#tracing-image.maximized {
+  max-width: 82vw;
+  max-height: 55dvh;
+}
+
+/* Menü klebt direkt unter der Stage und wandert mit */
 .controls {
-  position: relative;
-  z-index: 10;
-  flex-shrink: 0; /* Das Menü kann niemals gequetscht oder verschoben werden */
   background: rgba(255, 255, 255, 0.95);
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   width: 92vw;
   max-width: 400px;
-  margin-bottom: 4px;
 }
 
 .controls-header {
@@ -131,28 +198,10 @@ body, html {
   padding: 0;
 }
 
-.control-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  justify-content: center;
-}
-
 .control-group.buttons {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
-}
-
-label {
-  font-size: 12px;
-  font-weight: bold;
-  color: #333;
-}
-
-input[type="range"] {
-  flex-grow: 1;
 }
 
 #file-upload {
