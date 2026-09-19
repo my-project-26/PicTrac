@@ -54,18 +54,17 @@
   <div class="app-container">
     <video id="camera-feed" autoplay playsinline></video>
 
-    <!-- User Bar ganz oben -->
+    <!-- Header mit User-Badge -->
     <div class="user-bar">
       <span id="user-display">👤 Gast</span>
     </div>
 
-    <!-- ZENTRALE GRUPPE: Bild + direkt darunter angeschlossenes Menü -->
-    <div class="tracing-wrapper">
+    <!-- Layout-Wrapper: Bild oben (100% Breite), Menü direkt darunter -->
+    <div class="main-layout">
       <div class="overlay-container">
         <img id="tracing-image" src="Katze.png" alt="Vorlage">
       </div>
 
-      <!-- Menü ist jetzt direkt Teil der Image-Gruppe -->
       <div class="controls" id="draggable-controls">
         <div class="controls-header" id="toggle-menu">
           <span class="drag-handle">⚙️ Menü</span>

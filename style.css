@@ -22,7 +22,6 @@ body, html {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
 #camera-feed {
@@ -37,56 +36,65 @@ body, html {
 
 .user-bar {
   position: absolute;
-  top: calc(10px + env(safe-area-inset-top));
-  z-index: 10;
+  top: calc(8px + env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
   background: rgba(0, 0, 0, 0.6);
   color: white;
-  padding: 6px 14px;
+  padding: 4px 12px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
 }
 
-/* Feste Wrapper-Gruppe: Bild oben, Menü direkt darunter angehängt */
-.tracing-wrapper {
+/* Haupt-Layout Fluss */
+.main-layout {
   position: relative;
   z-index: 10;
-  margin-top: calc(45px + env(safe-area-inset-top));
+  width: 100vw;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  max-height: calc(100vh - 60px);
+  justify-content: space-between;
+  padding-top: calc(35px + env(safe-area-inset-top));
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
 }
 
+/* Bild dehnt sich von linkem bis rechtem Rand aus (100% W) */
 .overlay-container {
+  width: 100vw;
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
+  min-height: 0;
   pointer-events: none;
 }
 
 #tracing-image {
-  max-width: 85vw;
-  max-height: 45vh; /* Dynamisch begrenzt, damit Menü darunter Platz findet */
-  object-fit: contain;
+  width: 100vw; /* Maximal groß von linkem bis rechtem Rand */
+  height: 100%;
+  object-fit: contain; /* Seitenverhältnisse bleiben exakt erhalten */
   opacity: 0.7;
   mix-blend-mode: multiply;
   filter: contrast(150%);
   transition: transform 0.2s ease;
 }
 
-/* Menü direkt ohne Lücke unter dem Bild */
+/* Menü direkt unter dem Bild angehängt, vollständig sichtbar */
 .controls {
   background: rgba(255, 255, 255, 0.95);
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  width: 90vw;
-  max-width: 380px;
-  margin-top: 6px; /* Direkt unter dem Katzenbild */
+  width: 96vw;
+  max-width: 420px;
+  align-self: center;
+  margin-bottom: 2px;
 }
 
 .controls-header {
@@ -141,7 +149,7 @@ body, html {
 }
 
 label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
   color: #333;
 }
