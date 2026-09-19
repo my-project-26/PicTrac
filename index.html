@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>AR Tracing App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <video id="camera-feed" autoplay playsinline></video>
+    
+    <div class="overlay-container">
+      <img id="tracing-image" src="motiv.png" alt="Vorlage">
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <label for="opacity-slider">Transparenz:</label>
+        <input type="range" id="opacity-slider" min="0" max="1" step="0.05" value="0.7">
+      </div>
+
+      <div class="control-group buttons">
+        <label for="file-upload" class="btn upload-btn">📷 Bild wählen</label>
+        <input type="file" id="file-upload" accept="image/*">
+        
+        <button id="btn-flip" class="btn">↔️ Spiegeln</button>
+        <button id="btn-rotate" class="btn">🔄 90° Drehen</button>
+        <button id="btn-lock" class="btn">🔒 Bild fixieren</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('camera-feed');
+    const image = document.getElementById('tracing-image');
+    const slider = document.getElementById('opacity-slider');
+    const fileInput = document.getElementById('file-upload');
+    const btnFlip = document.getElementById('btn-flip');
+    const btnRotate = document.getElementById('btn-rotate');
+    const btnLock = document.getElementById('btn-lock');
+
+    let currentRotation = 0;
+    let isFlipped = false;
+    let isLocked = false;
+
+    // Kamerastream starten (iOS-optimierte Kamera-Abfrage)
+    navigator.mediaDevices.getUserMedia({ 
+      video: { facingMode: "environment" } 
+    })
+    .then(stream => { video.srcObject = stream; })
+    .catch(() => {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => { video.srcObject = stream; })
+        .catch(err => console.error("Kamerafehler:", err));
+    });
+
+    // Transparenz-Regler
+    slider.addEventListener('input', (e) => {
+      image.style.opacity = e.target.value;
+    });
+
+    // Upload-Funktion
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          image.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Spiegeln
+    btnFlip.addEventListener('click', () => {
+      if (isLocked) return;
+      isFlipped = !isFlipped;
+      updateTransform();
+    });
+
+    // Drehen
+    btnRotate.addEventListener('click', () => {
+      if (isLocked) return;
+      currentRotation = (currentRotation + 90) % 360;
+      updateTransform();
+    });
+
+    // Bild fixieren / sperren
+    btnLock.addEventListener('click', () => {
+      isLocked = !isLocked;
+      btnLock.classList.toggle('active', isLocked);
+      btnLock.innerText = isLocked ? "🔓 Entsperren" : "🔒 Bild fixieren";
+      
+      // Bedienelemente deaktivieren, wenn gesperrt
+      btnFlip.disabled = isLocked;
+      btnRotate.disabled = isLocked;
+      fileInput.disabled = isLocked;
+    });
+
+    // Transformation anwenden
+    function updateTransform() {
+      const scaleX = isFlipped ? -1 : 1;
+      image.style.transform = `rotate(${currentRotation}deg) scaleX(${scaleX})`;
+    }
+  </script>
+</body>
+</html>
