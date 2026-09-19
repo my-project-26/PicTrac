@@ -234,11 +234,12 @@ body, html {
   color: #0277bd;
 }
 
+/* Roter Zustand für gesperrten Upload eigener Bilder */
 .upload-btn.disabled-btn {
   background-color: #ffebee !important;
   border-color: #ff8a80 !important;
   color: #c62828 !important;
-  cursor: not-allowed;
+  cursor: pointer;
 }
 
 .btn-warning {
@@ -254,6 +255,8 @@ body, html {
   width: 100%;
   padding: 10px;
   margin-top: 10px;
+  border-radius: 10px;
+  font-weight: bold;
 }
 
 .btn-success {
@@ -263,6 +266,8 @@ body, html {
   width: 100%;
   padding: 10px;
   margin-top: 10px;
+  border-radius: 10px;
+  font-weight: bold;
 }
 
 .btn-secondary {
