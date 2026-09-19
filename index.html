@@ -30,14 +30,14 @@
   <div id="gallery-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Meine Auswahl (<span id="image-count">0</span>/5)</h3>
+        <h3>Vorlagen (<span id="image-count">0</span>)</h3>
         <button id="close-gallery" class="close-btn">&times;</button>
       </div>
       <div id="gallery-grid" class="gallery-grid"></div>
     </div>
   </div>
 
-  <!-- 3. Freischalt Modal (Bankverbindung & Aktivierungscode) -->
+  <!-- 3. Freischalt Modal -->
   <div id="unlock-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -45,7 +45,7 @@
         <button id="close-unlock" class="close-btn">&times;</button>
       </div>
       
-      <p>Unbegrenzter Upload & exklusive Bonus-Bilder für einmalig <strong>2,99 €</strong>!</p>
+      <p>Schalte den <strong>Upload eigener Fotos vom Handy</strong> & alle exklusiven Bonus-Vorlagen frei für einmalig <strong>2,99 €</strong>!</p>
       
       <div class="payment-box">
         <p><strong>Bankverbindung für Überweisung:</strong></p>
@@ -56,7 +56,7 @@
 
       <div class="code-box">
         <p>Hast du bereits gezahlt? Gib deinen Code ein:</p>
-        <input type="text" id="unlock-code-input" placeholder="z. B. PRO-2026">
+        <input type="text" id="unlock-code-input" placeholder="z. B. P..-2....">
         <button id="btn-submit-code" class="btn btn-success">Code aktivieren</button>
       </div>
 
@@ -95,7 +95,7 @@
         </div>
       </div>
 
-      <!-- Das Menü klebt direkt unter dem Bild-Wrapper -->
+      <!-- Menü -->
       <div class="controls" id="draggable-controls">
         <div class="controls-header" id="toggle-menu">
           <span class="drag-handle">⚙️ Menü</span>
@@ -104,16 +104,16 @@
 
         <div class="controls-body" id="controls-body">
           <div class="control-group buttons">
-            <label for="file-upload" id="upload-label" class="btn upload-btn">
-              <span id="upload-icon">📷</span> <span id="upload-text">Bild wählen</span>
+            <label for="file-upload" id="upload-label" class="btn upload-btn disabled-btn">
+              <span id="upload-icon">🔒</span> <span id="upload-text">Eigene Bilder</span>
             </label>
-            <input type="file" id="file-upload" accept="image/*">
+            <input type="file" id="file-upload" accept="image/*" disabled>
             
             <button id="btn-gallery" class="btn">🖼️ Auswahl (<span id="badge-count">0</span>)</button>
             <button id="btn-unlock-menu" class="btn btn-warning">🔓 Freischalten</button>
             <button id="btn-flip" class="btn">↔️ Spiegeln</button>
             <button id="btn-rotate" class="btn">🔄 90° Drehen</button>
-            <button id="btn-lock" class="btn">🔒 Fixieren</button>
+            <button id="btn-lock" class="btn">🔒 Position fixieren</button>
           </div>
         </div>
       </div>
@@ -124,16 +124,15 @@
   <script>
     const FORMSPREE_ENDPOINT = "https://formspree.io/f/xnpnnede";
     
-    // Gültige Aktivierungs-Codes
     const VALID_CODES = ["PRO-2026", "PIC-TRAC-PRO", "KAI-2026"];
 
-    // Bonus-Bilder aus deinem 'update'-Ordner (für Freischaltung)
+    // Bonus-Bilder aus deinem 'update'-Ordner
     const updateFolderImages = [
       "update/Bonus_1.png",
       "update/Bonus_2.png"
     ];
 
-    // Standard-Bilder aus deinem Hauptordner
+    // Standard-Vorlagen
     const defaultSystemImages = [
       "Katze.png",
       "Hund.png",
@@ -196,7 +195,6 @@
     let isPro = localStorage.getItem('pictrac_pro') === 'true';
     let isMenuCollapsed = false;
     
-    // Bilder-Speicher initialisieren (falls leer, Standardbilder laden)
     let userImages = JSON.parse(localStorage.getItem('pictrac_images') || 'null');
     if (!userImages || userImages.length === 0) {
       userImages = defaultSystemImages;
@@ -205,7 +203,6 @@
 
     let currentUser = JSON.parse(localStorage.getItem('pictrac_user') || 'null');
 
-    // ZOOM-LOGIK (+ / -)
     btnZoomIn.addEventListener('click', () => {
       image.classList.add('maximized');
       btnZoomIn.classList.add('active');
@@ -218,14 +215,12 @@
       btnZoomIn.classList.remove('active');
     });
 
-    // Menü Ein-/Ausklappen
     toggleMenu.addEventListener('click', () => {
       isMenuCollapsed = !isMenuCollapsed;
       controlsBody.classList.toggle('collapsed', isMenuCollapsed);
       btnToggleView.innerText = isMenuCollapsed ? "🔼" : "🔽";
     });
 
-    // Kamera starten
     navigator.mediaDevices.getUserMedia({ 
       video: { facingMode: { ideal: "environment" } } 
     })
@@ -241,7 +236,6 @@
       authModal.classList.add('hidden');
     }
 
-    // Registrierung verarbeiten
     authForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const nickname = document.getElementById('nickname').value;
@@ -264,6 +258,14 @@
       }).catch(err => console.error("E-Mail Sende-Fehler:", err));
     });
 
+    // Klick auf gesperrten Upload öffnet direkt das Pay-Modal
+    uploadLabel.addEventListener('click', (e) => {
+      if (!isPro) {
+        e.preventDefault();
+        unlockModal.classList.remove('hidden');
+      }
+    });
+
     // CODE-PRÜFUNG FÜR PRO-FREISCHALTUNG
     btnSubmitCode.addEventListener('click', () => {
       const enteredCode = unlockCodeInput.value.trim().toUpperCase();
@@ -280,11 +282,12 @@
         });
         localStorage.setItem('pictrac_images', JSON.stringify(userImages));
 
-        alert("🎉 Code erfolgreich eingelöst! Die Pro-Version & Bonus-Bilder sind ab sofort aktiv.");
+        alert("🎉 Pro-Version aktiv! Du kannst ab sofort eigene Fotos vom Handy hochladen.");
         unlockModal.classList.add('hidden');
+        checkProStatus();
         updateGallery();
       } else {
-        alert("❌ Ungültiger Code. Bitte überprüfe deine Eingabe oder kontaktiere den Support.");
+        alert("❌ Ungültiger Code. Bitte überprüfe deine Eingabe.");
       }
     });
 
@@ -293,7 +296,7 @@
     btnUnlockMenu.addEventListener('click', () => unlockModal.classList.remove('hidden'));
 
     fileInput.addEventListener('change', (event) => {
-      if (userImages.length >= 5 && !isPro) {
+      if (!isPro) {
         unlockModal.classList.remove('hidden');
         return;
       }
@@ -313,21 +316,22 @@
       }
     });
 
-    function checkUploadLimit() {
+    // Status-Steuerung: Schaltet den Upload-Button erst nach der Bezahlung frei
+    function checkProStatus() {
       const count = userImages.length;
       imageCount.innerText = count;
       badgeCount.innerText = count;
 
-      if (count >= 5 && !isPro) {
-        fileInput.disabled = true;
-        uploadLabel.classList.add('disabled-btn');
-        uploadIcon.innerText = "❌";
-        uploadText.innerText = "Gesperrt";
-      } else {
+      if (isPro) {
         fileInput.disabled = false;
         uploadLabel.classList.remove('disabled-btn');
         uploadIcon.innerText = "📷";
-        uploadText.innerText = "Bild wählen";
+        uploadText.innerText = "Eigene Bilder";
+      } else {
+        fileInput.disabled = true;
+        uploadLabel.classList.add('disabled-btn');
+        uploadIcon.innerText = "🔒";
+        uploadText.innerText = "Eigene Bilder";
       }
     }
 
@@ -343,7 +347,7 @@
         });
         galleryGrid.appendChild(thumb);
       });
-      checkUploadLimit();
+      checkProStatus();
     }
 
     btnGallery.addEventListener('click', () => galleryModal.classList.remove('hidden'));
@@ -366,10 +370,9 @@
     btnLock.addEventListener('click', () => {
       isLocked = !isLocked;
       btnLock.classList.toggle('active', isLocked);
-      btnLock.innerText = isLocked ? "🔓 Entsperren" : "🔒 Fixieren";
+      btnLock.innerText = isLocked ? "🔓 Position fixiert" : "🔒 Position fixieren";
       btnFlip.disabled = isLocked;
       btnRotate.disabled = isLocked;
-      fileInput.disabled = isLocked || (userImages.length >= 5 && !isPro);
     });
 
     function updateTransform() {
